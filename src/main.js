@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Detection Bypass
 // @namespace    https://github.com/Yaoser-x/Universal-Detection-Bypass
-// @version      1.1.1
+// @version      1.2.1
 // @description  统一的 Web 检测绕过框架 — 拦截浏览器焦点、页面可见性等状态检测，使页面始终认为处于激活状态
 // @author       Yaoser-x
 // @match        *://*/*

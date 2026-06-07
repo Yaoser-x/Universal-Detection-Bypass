@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/lang/zh-CN/
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-06-07
+
+### Fixed
+- 修复 `property-spoofer.js` 中 `hasFocus` getter 返回函数而非布尔值的 bug（`get: () => () => true` → `value: () => true`）
+- 为 `devtools-spoof.js` 中所有 monkey-patch（Function 构造器、console 方法、performance.now）添加 toString 伪装
+- 为 `behavior-spoof.js` 中 `navigator.permissions.query` 添加 toString 伪装
+- 修复 `navigator.platform` 硬编码为 `Win32` 的问题，改为根据 UA 动态推断
+- 所有模块的 `catch (_) {}` 改为 `catch (e) { ctx.log(...) }`，关键保护层失败时输出日志
+
+## [1.2.0] - 2026-06-07
+
+### Added
+- 开发者工具检测绕过模块（DevToolsSpoof）：覆盖 debugger 陷阱、console 格式化检测、窗口尺寸检测、Performance 时序检测、自动化标志清理
+- `navigator.platform` 保底：headless 浏览器返回空时伪造为 `Win32`
+- `navigator.hardwareConcurrency` 保底：headless 通常为 1，伪造为 4
+- `document.webkitHidden` 覆盖：兼容旧 WebKit 浏览器
+- `pageshow` 事件拦截：部分站点用此检测页面恢复
+
+### Changed
+- `navigator.languages` 不再硬编码 `zh-CN`，改为从浏览器实际 `navigator.language` 读取，仅在为空时保底
+
 ## [1.1.1] - 2026-06-07
 
 ### Fixed
@@ -48,7 +69,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/lang/zh-CN/
 - GitHub Actions CI/CD：推送到 `main` 自动构建校验语法创建 Release
 - 项目基础设施：README、CHANGELOG、GPL-3.0 License、.gitignore、package.json
 
-[Unreleased]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Yaoser-x/Universal-Detection-Bypass/releases/tag/v1.0.0

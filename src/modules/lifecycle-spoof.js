@@ -12,7 +12,9 @@ registerModule({
                 value: false,
                 configurable: true,
             });
-        } catch (_) {}
+        } catch (e) {
+            ctx.log('[PageLifecycleSpoof] wasDiscarded patch failed:', e.message);
+        }
 
         // Spoof navigator.connection.downlink / rtt for network-based detection
         try {
@@ -25,6 +27,8 @@ registerModule({
                     saveData: { get: () => false },
                 });
             }
-        } catch (_) {}
+        } catch (e) {
+            ctx.log('[PageLifecycleSpoof] connection patch failed:', e.message);
+        }
     },
 });

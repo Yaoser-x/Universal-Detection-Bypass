@@ -13,6 +13,7 @@ registerModule({
             'focusin',
             'focusout',
             'pagehide',
+            'pageshow',
             'mouseleave',
             'mouseenter',
         ]);

@@ -9,9 +9,10 @@ registerModule({
         // --- document properties ---
         const docOverrides = {
             hidden: { value: false },
+            webkitHidden: { value: false },
             visibilityState: { value: 'visible' },
             webkitVisibilityState: { value: 'visible' },
-            hasFocus: { get: () => () => true },
+            hasFocus: { value: () => true },
         };
 
         // on* handler traps — silently discard assignments
@@ -31,7 +32,11 @@ registerModule({
             };
         }
 
-        Object.defineProperties(document, docOverrides);
+        try {
+            Object.defineProperties(document, docOverrides);
+        } catch (e) {
+            ctx.log('[PropertySpoofer] document properties patch failed:', e.message);
+        }
 
         // --- window properties ---
         const winOverrides = {
@@ -44,7 +49,11 @@ registerModule({
             },
         };
 
-        Object.defineProperties(window, winOverrides);
+        try {
+            Object.defineProperties(window, winOverrides);
+        } catch (e) {
+            ctx.log('[PropertySpoofer] window properties patch failed:', e.message);
+        }
 
         ctx.debug('[PropertySpoofer] Properties overridden');
     },

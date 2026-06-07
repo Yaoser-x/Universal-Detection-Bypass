@@ -9,14 +9,15 @@
 
 ## 功能特性
 
-### 当前版本 (v1.1.0)
+### 当前版本 (v1.2.0)
 
-- **事件拦截** — capture 阶段拦截 `visibilitychange`、`blur`、`focus`、`focusin`、`focusout`、`pagehide`、`mouseleave`、`mouseenter`
+- **事件拦截** — capture 阶段拦截 `visibilitychange`、`blur`、`focus`、`focusin`、`focusout`、`pagehide`、`pageshow`、`mouseleave`、`mouseenter`
 - **事件监听黑名单** — 劫持 `addEventListener`，阻止页面注册检测事件
-- **属性伪造** — 重写 `document.hidden`、`document.visibilityState`、`document.hasFocus` 等只读属性
+- **属性伪造** — 重写 `document.hidden`、`document.webkitHidden`、`document.visibilityState`、`document.hasFocus` 等只读属性
 - **分发拦截** — 阻止手动 `dispatchEvent('visibilitychange')` 触发检测
 - **生命周期伪造** — 伪造 `document.wasDiscarded`、`navigator.connection` 状态
-- **浏览器行为伪造** — `navigator.webdriver`、`plugins`、`mimeTypes`、`languages`、`chrome` 对象、`Notification.permission`
+- **浏览器行为伪造** — `navigator.webdriver`、`plugins`、`mimeTypes`、`languages`、`platform`、`hardwareConcurrency`、`chrome` 对象、`Notification.permission`
+- **开发者工具检测绕过** — debugger 陷阱拦截、console 格式化检测防护、窗口尺寸伪造、Performance 时序平滑、自动化标志清理
 - **toString 伪装** — `addEventListener` 劫持保留原始 `toString` 表现，防止指纹检测
 - **模块化架构** — 源码拆分为 `core/` + `modules/`，CI 端自动构建整合
 
@@ -24,7 +25,6 @@
 
 | 阶段 | 功能 | 状态 |
 |------|------|------|
-| v1.2 | 开发者工具检测绕过 | 规划中 |
 | v1.3 | 用户活跃度检测绕过（鼠标/键盘模拟） | 规划中 |
 | v2.0 | 站点特定检测逻辑适配 | 规划中 |
 
@@ -74,7 +74,8 @@ Universal Detection Bypass
 │   ├── property-spoofer.js      — document/window 属性伪造
 │   ├── visibility-nullifier.js  — dispatchEvent 分发拦截
 │   ├── lifecycle-spoof.js       — Page Lifecycle API 伪造
-│   └── behavior-spoof.js        — 浏览器行为与环境检测绕过
+│   ├── behavior-spoof.js        — 浏览器行为与环境检测绕过
+│   └── devtools-spoof.js        — 开发者工具检测绕过
 ├── main.js                      — 入口：metadata block
 └── scripts/build.mjs            — 构建脚本：模块拼接 → dist/
 ```
@@ -96,6 +97,7 @@ Universal-Detection-Bypass/
 │   │   └── utils.js
 │   └── modules/                    # 功能模块
 │       ├── behavior-spoof.js
+│       ├── devtools-spoof.js
 │       ├── event-interceptor.js
 │       ├── lifecycle-spoof.js
 │       ├── property-spoofer.js
