@@ -17,7 +17,7 @@
 - **分发拦截** — 阻止手动 `dispatchEvent('visibilitychange')` 触发检测
 - **生命周期伪造** — 伪造 `document.wasDiscarded`、`navigator.connection` 状态
 - **浏览器行为伪造** — `navigator.webdriver`、`plugins`、`mimeTypes`、`languages`、`chrome` 对象、`Notification.permission`
-- **toString 伪装** — 所有劫持函数保留原始 `toString` 表现，防止指纹检测
+- **toString 伪装** — `addEventListener` 劫持保留原始 `toString` 表现，防止指纹检测
 - **模块化架构** — 源码拆分为 `core/` + `modules/`，CI 端自动构建整合
 
 ### 后续开发方向
@@ -74,9 +74,8 @@ Universal Detection Bypass
 │   ├── property-spoofer.js      — document/window 属性伪造
 │   ├── visibility-nullifier.js  — dispatchEvent 分发拦截
 │   ├── lifecycle-spoof.js       — Page Lifecycle API 伪造
-│   ├── behavior-spoof.js        — 浏览器行为与环境检测绕过
-│   └── raf-guard.js             — requestAnimationFrame 守护（预留）
-├── main.js                      — 入口：metadata block + boot
+│   └── behavior-spoof.js        — 浏览器行为与环境检测绕过
+├── main.js                      — 入口：metadata block
 └── scripts/build.mjs            — 构建脚本：模块拼接 → dist/
 ```
 
@@ -100,7 +99,6 @@ Universal-Detection-Bypass/
 │       ├── event-interceptor.js
 │       ├── lifecycle-spoof.js
 │       ├── property-spoofer.js
-│       ├── raf-guard.js
 │       └── visibility-nullifier.js
 ├── scripts/
 │   └── build.mjs                   # 构建脚本

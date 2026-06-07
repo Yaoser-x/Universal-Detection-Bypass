@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/lang/zh-CN/
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-06-07
+
+### Fixed
+- 移除 `src/main.js` 中未被构建脚本使用的 `BUILD_INSERT` 占位符
+- 移除空壳模块 `raf-guard.js`（no-op，注册但不执行任何逻辑）
+- 移除 `event-interceptor.js` 中无效的 `return false`（`stopImmediatePropagation` + `preventDefault` 已覆盖）
+- 移除 `property-spoofer.js` 中与 `defineProperties` 重复的 `document.hasFocus` 赋值
+- 修复 `document.onvisibilitychange` 被 `PropertySpoofer` 和 `VisibilityEventNullifier` 两个模块重复覆盖的冲突，统一由 `VisibilityEventNullifier` 负责
+- 修正 README/CHANGELOG 中「所有劫持函数均保留原始 toString 表现」的夸大描述，实际仅 `addEventListener` 劫持做了 toString 伪装
+
 ## [1.1.0] - 2026-06-07
 
 ### Added
@@ -33,11 +43,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/lang/zh-CN/
 - 生命周期伪造模块（PageLifecycleSpoof）：伪造 `document.wasDiscarded` 和 `navigator.connection` 状态
 - RAF 守护模块（RAFGuard）：预留 `requestAnimationFrame` 频率检测绕过接口
 - 模块化架构：`registerModule` + `initAllModules`，支持按类别扩展新模块
-- toString 指纹伪装：所有劫持的函数均保留原始 `toString` 表现
+- toString 指纹伪装：`addEventListener` 劫持保留原始 `toString` 表现
 - 调试模式：`CONFIG.debug` 开关，控制台输出 `[UDB]` 前缀日志
 - GitHub Actions CI/CD：推送到 `main` 自动构建校验语法创建 Release
 - 项目基础设施：README、CHANGELOG、GPL-3.0 License、.gitignore、package.json
 
-[Unreleased]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Yaoser-x/Universal-Detection-Bypass/releases/tag/v1.0.0

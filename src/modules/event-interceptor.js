@@ -26,7 +26,6 @@ registerModule({
                     e.stopImmediatePropagation();
                     e.stopPropagation();
                     e.preventDefault();
-                    return false;
                 },
                 true // capture phase — runs before any page listener
             );

@@ -11,12 +11,11 @@ registerModule({
             hidden: { value: false },
             visibilityState: { value: 'visible' },
             webkitVisibilityState: { value: 'visible' },
-            hasFocus: { value: () => true },
+            hasFocus: { get: () => () => true },
         };
 
         // on* handler traps — silently discard assignments
         const handlerNames = [
-            'onvisibilitychange',
             'onblur',
             'onfocus',
             'onfocusin',
@@ -46,13 +45,6 @@ registerModule({
         };
 
         Object.defineProperties(window, winOverrides);
-
-        // --- document.hasFocus override (non-configurable in some browsers) ---
-        try {
-            document.hasFocus = () => true;
-        } catch (_) {
-            // Already overridden by defineProperties or not writable
-        }
 
         ctx.debug('[PropertySpoofer] Properties overridden');
     },
