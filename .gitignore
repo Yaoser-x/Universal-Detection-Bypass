@@ -1,6 +1,10 @@
 # Build output
 dist/
 
+# Claude Code
+CLAUDE.md
+.claude/
+
 # Logs
 logs
 *.log
