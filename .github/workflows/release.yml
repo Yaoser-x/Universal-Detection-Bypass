@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Validate JS syntax
+        run: node --check src/Universal-Detection-Bypass.user.js
+
+      - name: Validate userscript metadata
+        shell: bash
+        run: |
+          script="src/Universal-Detection-Bypass.user.js"
+          grep -q '^// @version' "$script"
+          grep -q '^// @downloadURL' "$script"
+          grep -q '^// @updateURL' "$script"
+          grep -q '^// @name' "$script"
+          echo "Metadata validation passed"
+
+      - name: Read userscript version
+        id: version
+        shell: bash
+        run: |
+          version="$(awk '/^\/\/ @version/{print $3; exit}' src/Universal-Detection-Bypass.user.js)"
+          if [[ -z "$version" ]]; then
+            echo "Cannot read // @version from userscript" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "Detected version: $version"
+
+      - name: Extract changelog for this version
+        id: changelog
+        if: github.ref_name == 'main'
+        shell: bash
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          body=$(awk -v ver="$version" '
+            /^## \[/ { if (found) exit; if ($0 ~ "\\[" ver "\\]") found=1; next }
+            found { print }
+          ' CHANGELOG.md)
+          if [[ -z "$body" ]]; then
+            body="Release v$version"
+          fi
+          echo "$body" > /tmp/release-body.md
+
+      - name: Copy script for release
+        run: cp src/Universal-Detection-Bypass.user.js Universal-Detection-Bypass.user.js
+
+      - name: Prepare dev artifact
+        if: github.ref_name == 'dev'
+        run: cp src/Universal-Detection-Bypass.user.js UDB-dev.user.js
+
+      - name: Upload dev artifact
+        if: github.ref_name == 'dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: UDB-dev-${{ steps.version.outputs.version }}
+          path: UDB-dev.user.js
+
+      - name: Create release tag
+        if: github.ref_name == 'main'
+        shell: bash
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          if git ls-remote --tags origin "$tag" | grep -q "refs/tags/$tag$"; then
+            echo "Tag $tag already exists"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$tag"
+          git push origin "$tag"
+
+      - name: Publish GitHub Release
+        if: github.ref_name == 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" Universal-Detection-Bypass.user.js --clobber
+          else
+            gh release create "$tag" Universal-Detection-Bypass.user.js \
+              --title "Universal Detection Bypass ${{ steps.version.outputs.version }}" \
+              --notes-file /tmp/release-body.md \
+              --latest
+          fi
