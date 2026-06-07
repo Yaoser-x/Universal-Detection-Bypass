@@ -23,7 +23,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Validate JS syntax
         run: node --check src/Universal-Detection-Bypass.user.js
