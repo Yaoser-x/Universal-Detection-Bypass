@@ -24,13 +24,16 @@ jobs:
         with:
           node-version: 22
 
+      - name: Build userscript from modules
+        run: node scripts/build.mjs
+
       - name: Validate JS syntax
-        run: node --check src/Universal-Detection-Bypass.user.js
+        run: node --check dist/Universal-Detection-Bypass.user.js
 
       - name: Validate userscript metadata
         shell: bash
         run: |
-          script="src/Universal-Detection-Bypass.user.js"
+          script="dist/Universal-Detection-Bypass.user.js"
           grep -q '^// @version' "$script"
           grep -q '^// @downloadURL' "$script"
           grep -q '^// @updateURL' "$script"
@@ -41,7 +44,7 @@ jobs:
         id: version
         shell: bash
         run: |
-          version="$(awk '/^\/\/ @version/{print $3; exit}' src/Universal-Detection-Bypass.user.js)"
+          version="$(awk '/^\/\/ @version/{print $3; exit}' dist/Universal-Detection-Bypass.user.js)"
           if [[ -z "$version" ]]; then
             echo "Cannot read // @version from userscript" >&2
             exit 1
@@ -65,12 +68,9 @@ jobs:
           fi
           echo "$body" > /tmp/release-body.md
 
-      - name: Copy script for release
-        run: cp src/Universal-Detection-Bypass.user.js Universal-Detection-Bypass.user.js
-
       - name: Prepare dev artifact
         if: github.ref_name == 'dev'
-        run: cp src/Universal-Detection-Bypass.user.js UDB-dev.user.js
+        run: cp dist/Universal-Detection-Bypass.user.js UDB-dev.user.js
 
       - name: Upload dev artifact
         if: github.ref_name == 'dev'
@@ -100,9 +100,9 @@ jobs:
         run: |
           tag="${{ steps.version.outputs.tag }}"
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" Universal-Detection-Bypass.user.js --clobber
+            gh release upload "$tag" dist/Universal-Detection-Bypass.user.js --clobber
           else
-            gh release create "$tag" Universal-Detection-Bypass.user.js \
+            gh release create "$tag" dist/Universal-Detection-Bypass.user.js \
               --title "Universal Detection Bypass ${{ steps.version.outputs.version }}" \
               --notes-file /tmp/release-body.md \
               --latest
