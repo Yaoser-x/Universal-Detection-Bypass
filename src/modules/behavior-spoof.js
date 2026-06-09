@@ -17,9 +17,12 @@ registerModule({
             ctx.log('[BehaviorSpoof] webdriver patch failed:', e.message);
         }
 
-        // 删除 navigator.__proto__ 上的 webdriver（部分检测读取原型链）
+        // 删除 navigator 原型链上的 webdriver（部分检测读取原型链）
         try {
-            delete navigator.__proto__.webdriver;
+            const proto = Object.getPrototypeOf(navigator);
+            if (proto && 'webdriver' in proto) {
+                delete proto.webdriver;
+            }
         } catch (e) {
             ctx.log('[BehaviorSpoof] webdriver proto delete failed:', e.message);
         }
@@ -30,12 +33,17 @@ registerModule({
             if (navigator.plugins.length === 0) {
                 Object.defineProperty(navigator, 'plugins', {
                     get: () => {
-                        const plugins = [
+                        const pluginData = [
                             { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer', description: 'Portable Document Format' },
                             { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai', description: '' },
                             { name: 'Native Client', filename: 'internal-nacl-plugin', description: '' },
                         ];
+                        const plugins = pluginData.map(p => Object.assign({}, p));
                         plugins.length = 3;
+                        // 模拟 PluginArray 的 item() / namedItem() 接口
+                        plugins.item = (index) => plugins[index] || null;
+                        plugins.namedItem = (name) => plugins.find(p => p.name === name) || null;
+                        plugins.refresh = () => {};
                         return plugins;
                     },
                     configurable: true,
@@ -50,11 +58,15 @@ registerModule({
             if (navigator.mimeTypes.length === 0) {
                 Object.defineProperty(navigator, 'mimeTypes', {
                     get: () => {
-                        const mimeTypes = [
+                        const mimeData = [
                             { type: 'application/pdf', suffixes: 'pdf', description: 'Portable Document Format' },
                             { type: 'application/x-google-chrome-pdf', suffixes: 'pdf', description: 'Portable Document Format' },
                         ];
+                        const mimeTypes = mimeData.map(m => Object.assign({}, m));
                         mimeTypes.length = 2;
+                        // 模拟 MimeTypeArray 的 item() / namedItem() 接口
+                        mimeTypes.item = (index) => mimeTypes[index] || null;
+                        mimeTypes.namedItem = (name) => mimeTypes.find(m => m.type === name) || null;
                         return mimeTypes;
                     },
                     configurable: true,
@@ -124,17 +136,9 @@ registerModule({
         }
 
         // --- Notification.permission ---
-        // 部分网站检测通知权限状态来判断是否为自动化环境
-        try {
-            if (typeof Notification !== 'undefined') {
-                Object.defineProperty(Notification, 'permission', {
-                    get: () => 'default',
-                    configurable: true,
-                });
-            }
-        } catch (e) {
-            ctx.log('[BehaviorSpoof] Notification.permission patch failed:', e.message);
-        }
+        // 不硬编码权限值——用户可能已授予/拒绝通知
+        // 伪造为 'default' 反而暴露异常（真实浏览器可能是 'granted'）
+        // 保留原生 Notification.permission 行为
 
         // --- permissions API ---
         // 伪造 permissions.query 结果，防止通过权限状态检测

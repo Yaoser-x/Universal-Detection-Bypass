@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/lang/zh-CN/
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-09
+
+### Fixed
+- **[严重] 修复 console 方法在非 debug 模式下被完全静音的问题** — 之前 `CONFIG.debug=false` 时所有 `console.log/warn/error` 等输出被吞掉，导致网站运行时错误被掩盖；现在正常透传
+- **[严重] 修复 `Function.prototype.constructor` 循环引用** — `devtools-spoof.js` 中 `window.Function.prototype.constructor = window.Function` 导致原型链异常，移除该赋值
+- **[严重] 修复 `navigator.plugins` / `navigator.mimeTypes` 返回值类型错误** — 返回普通 `Array` 而非模拟 `PluginArray`/`MimeTypeArray`，添加 `item()`/`namedItem()`/`refresh()` 方法
+- **[中等] 移除 `outerWidth`/`outerHeight` 过度伪装** — `outer === inner` 是比 devtools 打开更强的 headless 信号，移除该伪装保留浏览器原生行为
+- **[中等] 修复 `performance.now()` 时序漂移** — offset 只增不减导致时间长期落后于真实值，用 `Date.now()` 锚定防止 `Date.now() - performance.now()` 差值暴露篡改；跳变阈值从 100ms 调整为 200ms
+- **[中等] 修复 `navigator.connection` 属性定义缺少 `configurable: true`** — 其他 userscript 或页面脚本尝试 patch 时会抛 `TypeError`
+- **[中等] 将 `navigator.__proto__` 替换为 `Object.getPrototypeOf()`** — `__proto__` 已废弃，某些环境不可用
+- **[中等] 移除 `Notification.permission` 硬编码为 `'default'`** — 用户可能已授予/拒绝通知，硬编码反而暴露异常；保留原生行为
+- **[中等] 从事件拦截中移除 `mouseleave`/`mouseenter`** — 这些是高频 UI 事件，阻断会导致下拉菜单、tooltip 等交互异常
+- **[中等] 从事件拦截中移除 `pagehide`/`pageshow`** — 阻断会破坏 bfcache 和 SPA 框架的生命周期管理
+- **[低] 修复 `document.hasFocus` 定义方式** — 箭头函数改为普通函数，保持与原生 API 的 `this` 行为一致
+
+### Changed
+- EventInterceptor 模块现在仅拦截 `visibilitychange` 事件，其余事件的反检测由 PropertySpoofer 的属性重写层保证
+- 性能时序压缩阈值从 100ms 调整为 200ms，减少误压缩正常帧间隔
+
 ## [1.2.1] - 2026-06-07
 
 ### Fixed
@@ -69,7 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/lang/zh-CN/
 - GitHub Actions CI/CD：推送到 `main` 自动构建校验语法创建 Release
 - 项目基础设施：README、CHANGELOG、GPL-3.0 License、.gitignore、package.json
 
-[Unreleased]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/Yaoser-x/Universal-Detection-Bypass/compare/v1.1.0...v1.1.1

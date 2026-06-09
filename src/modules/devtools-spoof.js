@@ -21,8 +21,8 @@ registerModule({
                 }
                 return origFunction.apply(this, args);
             };
+            // 保持原型链完整，不修改 constructor 避免循环引用
             window.Function.prototype = origFunction.prototype;
-            window.Function.prototype.constructor = window.Function;
             // toString camouflage
             window.Function.toString = () => origFunction.toString();
             window.Function.toString.toString = () => origFunction.toString.toString();
@@ -33,17 +33,15 @@ registerModule({
         // --- console 格式化检测 ---
         // 部分站点通过 console.log 输出对象时的格式差异判断 devtools 是否打开
         // devtools 打开时 console.log 会格式化对象，关闭时不会
-        // 拦截 console 方法，避免泄漏 devtools 状态
+        // 通过劫持使输出格式始终一致，避免泄漏 devtools 状态
+        // 注意：非 debug 模式下仍正常透传，不吞掉输出
         try {
             const consoleMethods = ['log', 'info', 'warn', 'error', 'debug', 'table', 'dir', 'dirxml'];
             for (const method of consoleMethods) {
                 if (typeof console[method] === 'function') {
-                    const orig = console[method].bind(console);
+                    const orig = console[method];
                     const wrapper = function (...args) {
-                        // 仅在 debug 模式下实际输出
-                        if (CONFIG.debug) {
-                            return orig(...args);
-                        }
+                        return orig.apply(console, args);
                     };
                     console[method] = wrapper;
                     // toString camouflage
@@ -57,33 +55,36 @@ registerModule({
 
         // --- 窗口尺寸检测 ---
         // 检测站点比较 outerWidth/Height vs innerWidth/Height 的差值
-        // devtools 打开时 outer > inner，重写 outer 使其等于 inner
-        try {
-            Object.defineProperties(window, {
-                outerWidth: { get: () => window.innerWidth, configurable: true },
-                outerHeight: { get: () => window.innerHeight, configurable: true },
-            });
-        } catch (e) {
-            ctx.log('[DevToolsSpoof] Window size patch failed:', e.message);
-        }
+        // 但 outer === inner 是比 devtools 打开更强的 headless 信号
+        // 因此不强制改写 outer 尺寸，保留浏览器原生行为
 
         // --- Performance 时序检测 ---
         // 部分站点用 performance.now() 检测 debugger 暂停导致的时间跳变
-        // 伪造 performance.now() 使其平滑递增，掩盖暂停
+        // 同时用 Date.now() - performance.now() 的差值验证一致性
+        // 策略：压缩 >200ms 的跳变，并用 Date.now() 锚定防止长期漂移
         try {
-            const startTime = performance.now();
-            let lastReal = startTime;
+            let lastReal = performance.now();
             let offset = 0;
             const origPerfNow = performance.now.bind(performance);
             const wrapper = function () {
                 const real = origPerfNow();
                 const delta = real - lastReal;
-                // 如果时间跳变超过 100ms（可能是 debugger 暂停），压缩到正常范围
-                if (delta > 100) {
-                    offset += delta - 16; // 保留约一帧的时间
+                // 仅压缩超过 200ms 的跳变（debugger 暂停），保留正常帧间隔
+                if (delta > 200) {
+                    offset += delta - 16;
                     ctx.debug(`[DevToolsSpoof] Compressed timing jump: ${delta.toFixed(1)}ms`);
                 }
                 lastReal = real;
+                const spoofed = real - offset;
+                // 锚定：确保 performance.now() 与 Date.now() 的偏差不超过 500ms
+                // 防止 offset 累积导致长期漂移被检测
+                const anchor = Date.now();
+                const perfEpoch = performance.timeOrigin;
+                const expectedNow = anchor - perfEpoch;
+                const drift = expectedNow - spoofed;
+                if (drift > 500) {
+                    offset -= drift - 100;
+                }
                 return real - offset;
             };
             performance.now = wrapper;

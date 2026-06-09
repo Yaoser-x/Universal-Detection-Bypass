@@ -21,10 +21,10 @@ registerModule({
             if (navigator.connection) {
                 const conn = navigator.connection;
                 Object.defineProperties(conn, {
-                    downlink: { get: () => 10 },
-                    rtt: { get: () => 50 },
-                    effectiveType: { get: () => '4g' },
-                    saveData: { get: () => false },
+                    downlink: { get: () => 10, configurable: true },
+                    rtt: { get: () => 50, configurable: true },
+                    effectiveType: { get: () => '4g', configurable: true },
+                    saveData: { get: () => false, configurable: true },
                 });
             }
         } catch (e) {

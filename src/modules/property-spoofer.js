@@ -12,7 +12,7 @@ registerModule({
             webkitHidden: { value: false },
             visibilityState: { value: 'visible' },
             webkitVisibilityState: { value: 'visible' },
-            hasFocus: { value: () => true },
+            hasFocus: { value: function () { return true; } },
         };
 
         // on* handler traps — silently discard assignments

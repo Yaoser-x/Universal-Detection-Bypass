@@ -8,14 +8,11 @@ registerModule({
     init(ctx) {
         const blockedEvents = new Set([
             'visibilitychange',
-            'blur',
-            'focus',
-            'focusin',
-            'focusout',
-            'pagehide',
-            'pageshow',
-            'mouseleave',
-            'mouseenter',
+            // blur / focus / focusin / focusout 不在此拦截
+            // 原因：弹窗式人机验证（reCAPTCHA / hCaptcha 等）依赖这些事件驱动弹窗生命周期
+            // 反检测由 PropertySpoofer 通过属性重写实现（hasFocus()→true, hidden→false 等）
+            // pagehide / pageshow 不拦截——破坏 bfcache 和 SPA 路由生命周期
+            // mouseleave / mouseenter 不拦截——影响正常 UI 交互（hover 菜单、tooltip 等）
         ]);
 
         // Phase 1: Capture-phase interception via stopImmediatePropagation

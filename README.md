@@ -9,23 +9,24 @@
 
 ## 功能特性
 
-### 当前版本 (v1.2.0)
+### 当前版本 (v1.3.0)
 
-- **事件拦截** — capture 阶段拦截 `visibilitychange`、`blur`、`focus`、`focusin`、`focusout`、`pagehide`、`pageshow`、`mouseleave`、`mouseenter`
-- **事件监听黑名单** — 劫持 `addEventListener`，阻止页面注册检测事件
+- **事件拦截** — capture 阶段拦截 `visibilitychange`，其余焦点/鼠标事件由属性重写层处理，避免阻断 CAPTCHA 弹窗和正常 UI 交互
+- **事件监听黑名单** — 劫持 `addEventListener`，阻止页面注册 `visibilitychange` 检测事件
 - **属性伪造** — 重写 `document.hidden`、`document.webkitHidden`、`document.visibilityState`、`document.hasFocus` 等只读属性
 - **分发拦截** — 阻止手动 `dispatchEvent('visibilitychange')` 触发检测
-- **生命周期伪造** — 伪造 `document.wasDiscarded`、`navigator.connection` 状态
-- **浏览器行为伪造** — `navigator.webdriver`、`plugins`、`mimeTypes`、`languages`、`platform`、`hardwareConcurrency`、`chrome` 对象、`Notification.permission`
-- **开发者工具检测绕过** — debugger 陷阱拦截、console 格式化检测防护、窗口尺寸伪造、Performance 时序平滑、自动化标志清理
-- **toString 伪装** — `addEventListener` 劫持保留原始 `toString` 表现，防止指纹检测
+- **生命周期伪造** — 伪造 `document.wasDiscarded`、`navigator.connection` 状态（`configurable` 可被其他脚本覆盖）
+- **浏览器行为伪造** — `navigator.webdriver`、`plugins`（含 `item()`/`namedItem()`）、`mimeTypes`、`languages`、`platform`、`hardwareConcurrency`、`chrome` 对象
+- **开发者工具检测绕过** — debugger 陷阱拦截、console 格式化检测防护、Performance 时序平滑（`Date.now()` 锚定防漂移）、自动化标志清理
+- **toString 伪装** — 所有 monkey-patch 保留原始 `toString` 表现，防止指纹检测
 - **模块化架构** — 源码拆分为 `core/` + `modules/`，CI 端自动构建整合
 
 ### 后续开发方向
 
 | 阶段 | 功能 | 状态 |
 |------|------|------|
-| v1.3 | 用户活跃度检测绕过（鼠标/键盘模拟） | 规划中 |
+| v1.3 | 全面审计修复：console 静音、类型伪装、时序漂移、事件拦截范围收窄 | ✅ 已完成 |
+| v1.4 | 用户活跃度检测绕过（鼠标/键盘模拟） | 规划中 |
 | v2.0 | 站点特定检测逻辑适配 | 规划中 |
 
 ---
